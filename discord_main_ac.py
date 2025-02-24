@@ -1,3 +1,5 @@
+import asyncio
+
 # discord.py をインポート
 import discord
 #logを保存するためにインポート
@@ -9,6 +11,7 @@ from discord import app_commands
 # modelsから必要なモデルをインポート(botはサーバーを起動するために必要な変数)
 from models import bot, Confirm, User, Channel
 import models
+import youtube_dl
 
 ch_count = 0
 
@@ -42,7 +45,7 @@ class Form_Create(discord.ui.View):
         self.value = None
         self.created_channel = None
 
-    @discord.ui.button(label="test", style=discord.ButtonStyle.red)
+    @discord.ui.button(label="create ticket🎫", style=discord.ButtonStyle.red)
     async def create(self, interaction: discord.Interaction, button: discord.ui.Button):
         global ch_count
         ch_count += 1
@@ -55,7 +58,7 @@ class Form_Create(discord.ui.View):
             await ch_id.set_permissions(no_look_member, read_messages=False)
         await ch_id.set_permissions(interaction.user, read_messages=True, send_messages=True)
 
-        await ch_id.send(f'消してくれ',view=Form_Delete(ch_id))
+        await ch_id.send(f'delete',view=Form_Delete(ch_id))
         self.value = True
 
 class Form_Delete(discord.ui.View):
@@ -70,16 +73,13 @@ class Form_Delete(discord.ui.View):
         await self.channel.delete()
     
 
-@bot.tree.command(name="test", description='test for button is create channel')
-async def test(interaction: discord.Interaction):
+@bot.tree.command(name="form", description='test for button is create channel')
+async def form(interaction: discord.Interaction):
     view_1 = Form_Create()
     await interaction.response.send_message("test creat channel",view=view_1)
     await view_1.wait()
     if view_1.value or view_1.value == False:
         view_1.value = None
-    else:
-        print("?")
-
 # Botを実行
 
 models.bot_run()
