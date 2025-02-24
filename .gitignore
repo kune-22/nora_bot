@@ -2,4 +2,4 @@
 /img
 /test.py
 /__pycache__
-/bot_token.py
+main/bot_token.py

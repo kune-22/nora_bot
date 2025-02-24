@@ -9,8 +9,8 @@ import logging
 from discord.ext import commands
 from discord import app_commands
 # modelsから必要なモデルをインポート(botはサーバーを起動するために必要な変数)
-from models import bot, Confirm, User, Channel
-import models
+from main.models import bot, Confirm, User, Channel
+import main.models as models
 import youtube_dl
 
 ch_count = 0
