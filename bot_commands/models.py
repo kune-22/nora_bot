@@ -15,13 +15,16 @@ class StaryCat(commands.Bot):
         #botがメッセージを読み取れる様にTrue
         intents.members = True
         intents.message_content = True
-
+        
         #@mention か　stray? でコマンドを実行可にする
         super().__init__(command_prefix=commands.when_mentioned_or('stray?'),intents=intents)
-
+        activity=discord.Game("stray? | ")
+        self.activity = activity
+        
     async def on_ready(self):
     # スラッシュコマンドの同期
         await self.tree.sync()
+        await self.change_presence(activity=self.activity)
         print(f'{self.user}が起動しました')
 
 # ログ設定

@@ -2,4 +2,5 @@
 /img
 /test.py
 /__pycache__
-main/bot_token.py
+bot_commands/bot_token.py
+bot_commands/__pycache__
