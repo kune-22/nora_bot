@@ -8,5 +8,5 @@ all command
 
 ```
 
-BOT追加URL
+BOT追加URL<br>
 [のらねこBOT](https://discord.com/oauth2/authorize?client_id=1186587022341705798)
