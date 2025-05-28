@@ -3,7 +3,7 @@
 <img src="https://img.shields.io/badge/-Python-F2C63C.svg?logo=python&style=for-the-badge">
 discord.pyを使用して作成しております
 
-機能は追加・修正、削除等される場合がございます。
+機能は追加・修正、削除等される場合がございます。<br>
 all command
 ```
 
