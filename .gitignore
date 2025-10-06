@@ -4,3 +4,4 @@
 /__pycache__
 bot_commands/bot_token.py
 bot_commands/__pycache__
+/.env
