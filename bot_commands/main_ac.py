@@ -1,6 +1,4 @@
 import asyncio
-
-# discord.py をインポート
 import discord
 #logを保存するためにインポート
 import logging
@@ -28,6 +26,21 @@ async def on_message(message):
     # スラッシュコマンドを処理するために、明示的にbot.process_commandsを呼び出す
     await bot.process_commands(message)
     
+# helpコマンド
+@bot.command(name='help')
+async def on_help(ctx):
+    embed = discord.Embed(
+        title="のらねこbot Help",
+        description="のらねこbotのコマンド一覧です。¥n" \
+        "お問い合わせ等サポートサーバーにて対応できます。プロフィールよりご参加下さい。",
+        color=discord.Colour.blue()
+    )
+    embed.add_field(name="/form", value="お問い合わせフォームを作成します。", inline=False)
+    embed.add_field(name="/create_voice_channel", value="ボイスチャンネル・聞き専を作成します。", inline=False)
+    embed.add_field(name="/reaction_roles", value="開発中のため使用できません。", inline=False)
+    embed.add_field(name="その他", value="機能追加時サポートサーバーにてお知らせ致します。", inline=False)
+    embed.set_footer(text="現在開発中のため機能が少ないです。")
+    await ctx.send(embed=embed)
 
 @bot.tree.command(name="form", description='お問い合わせフォームを作成します')
 async def form(interaction: discord.Interaction):
@@ -65,6 +78,8 @@ async def create_voice_channel(interaction: discord.Interaction):
 
 @bot.tree.command(name="reaction_roles" , description="リアクションロールボードを作成できます。")
 async def create_role_bords(interaction: discord.Interaction):
+    if interaction.user.guild_permissions.administrator:
+        pass
     pass
 
 # Botを実行

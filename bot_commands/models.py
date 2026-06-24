@@ -19,7 +19,7 @@ class StaryCat(commands.Bot):
         
         #@mention か　stray? でコマンドを実行可にする
         super().__init__(command_prefix=commands.when_mentioned_or('stray?'),intents=intents)
-        activity=discord.Game("stray? | ")
+        activity=discord.Game("stray?help | /help")
         self.activity = activity
         
     async def on_ready(self):
