@@ -1,4 +1,5 @@
 のらねこBOTの作成プロジェクトです。
+機能案が絞り出せないため、開発を中止しております。
 # 使用言語
 <img src="https://img.shields.io/badge/-Python-F2C63C.svg?logo=python&style=for-the-badge">
 discord.pyを使用して作成しております
