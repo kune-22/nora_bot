@@ -1,8 +1,5 @@
 /discord.log
-/img
-/test.py
-
-__pycache__
-/.env
-db/mysql_data
-/db
+db/mysql_data/
+__pycache__/
+*.pyc
+.env
