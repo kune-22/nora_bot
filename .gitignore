@@ -1,7 +1,8 @@
 /discord.log
 /img
 /test.py
-/__pycache__
-bot_commands/bot_token.py
-bot_commands/__pycache__
+
+__pycache__
 /.env
+db/mysql_data
+/db
