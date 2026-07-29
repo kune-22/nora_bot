@@ -4,9 +4,21 @@ services:
   discord_bot:
     build: .
     volumes:
-      - ./bot_commands:/app
+      - ./:/app
     env_file:
       - .env
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
+    depends_on:
+      - db
+  
+  db:
+    image: mysql:8.4
+    volumes:
+      - ./db/mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: bot_admins
+      MYSQL_DATABASE: bot_dev
+    ports:
+      - 3306:3306
