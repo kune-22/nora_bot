@@ -33,8 +33,8 @@ class StaryCat(commands.Bot):
             "cogs.help_cog",
             "cogs.form_cog",
             "cogs.voice_cog",
-            "cogs.reaction_roles_cog",
             "cogs.reload_cog",
+            "cogs.custom_role_cog",
         ]:
             await self.load_extension(cog)
         

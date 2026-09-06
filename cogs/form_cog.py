@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-
+REQUIRED_ROLE_ID = 1340608856132288583
 class FormCreateView(discord.ui.View):
     def __init__(self, cog):
         super().__init__(timeout=None)
@@ -10,7 +10,11 @@ class FormCreateView(discord.ui.View):
         self.created_channel = None
         self.cog = cog
 
-    @discord.ui.button(label="create ticket🎫", style=discord.ButtonStyle.red)
+    @discord.ui.button(
+        label="create ticket🎫",
+        style=discord.ButtonStyle.red,
+        custom_id="form:create_ticket",
+    )
     async def create(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.cog.form_ch_count += 1
         no_look_member = interaction.guild.default_role
@@ -30,19 +34,25 @@ class FormCreateView(discord.ui.View):
             description="問題が解決しましたか？\n下にあるボタンを押し、フォームを削除してください。",
             color=discord.Colour.red(),
         )
-        pinning = await ch_id.send(embed=embed, view=FormDeleteView(ch_id))
+        pinning = await ch_id.send(embed=embed, view=FormDeleteView())
         await pinning.pin()
         self.value = True
 
 
 class FormDeleteView(discord.ui.View):
-    def __init__(self, channel: discord.TextChannel):
+    def __init__(self):
         super().__init__(timeout=None)
-        self.channel = channel
 
-    @discord.ui.button(label="delete", style=discord.ButtonStyle.red)
+    @discord.ui.button(
+        label="delete",
+        style=discord.ButtonStyle.red,
+        custom_id="form:delete_ticket_channel",
+    )
     async def delete_channel(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.channel.delete()
+        if interaction.channel is None:
+            await interaction.response.send_message("チャンネルを取得できませんでした。", ephemeral=True)
+            return
+        await interaction.channel.delete()
 
 
 class FormCog(commands.Cog):
@@ -52,8 +62,8 @@ class FormCog(commands.Cog):
 
     @app_commands.command(name="form", description="お問い合わせフォームを作成します")
     async def form_command(self, interaction: discord.Interaction):
-        if not interaction.user.guild_permissions.administrator:
-            await interaction.response.send_message("You do not have administrator privileges.....", ephemeral=True)
+        if not interaction.user.guild_permissions.administrator or not any(role.id == REQUIRED_ROLE_ID for role in interaction.user.roles):
+            await interaction.response.send_message("このコマンドは管理権限を持っている方のみ実行できます。\nYou do not have administrator privileges.....", ephemeral=True)
             return
 
         view = FormCreateView(self)
@@ -69,4 +79,8 @@ class FormCog(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(FormCog(bot))
+    cog = FormCog(bot)
+    await bot.add_cog(cog)
+
+    bot.add_view(FormCreateView(cog))
+    bot.add_view(FormDeleteView())

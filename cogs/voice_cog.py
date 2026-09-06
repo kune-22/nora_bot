@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-
+REQUIRED_ROLE_ID = 1340608856132288583
 class VcNameModal(discord.ui.Modal):
     def __init__(self):
         super().__init__(title="作成するボイスチャンネル名を入力")
@@ -30,12 +30,20 @@ class VcListenCreateView(discord.ui.View):
         self.created_channel = None
         self.created_voice_channel = None
 
-    @discord.ui.button(label="ボイスチャンネルを作成", style=discord.ButtonStyle.blurple)
+    @discord.ui.button(
+        label="ボイスチャンネルを作成",
+        style=discord.ButtonStyle.blurple,
+        custom_id="voice:create_voice_channel",
+    )
     async def vc_create(self, interaction: discord.Interaction, button: discord.ui.Button):
         modal = VcNameModal()
         await interaction.response.send_modal(modal)
 
-    @discord.ui.button(label="聞き専を作成", style=discord.ButtonStyle.green)
+    @discord.ui.button(
+        label="聞き専を作成",
+        style=discord.ButtonStyle.green,
+        custom_id="voice:create_listen_channel",
+    )
     async def listen_create(self, interaction: discord.Interaction, button: discord.ui.Button):
         category = interaction.channel.category
         lt_ch = await interaction.guild.create_text_channel("聞き専", category=category)
@@ -48,8 +56,8 @@ class VoiceCog(commands.Cog):
 
     @app_commands.command(name="create_voice_channel", description="ボイスチャンネル・聞き専を作成します")
     async def create_voice_channel(self, interaction: discord.Interaction):
-        if not interaction.user.guild_permissions.administrator:
-            await interaction.response.send_message("You do not have administrator privileges.....", ephemeral=True)
+        if not interaction.user.guild_permissions.administrator or not any(role.id == REQUIRED_ROLE_ID for role in interaction.user.roles):
+            await interaction.response.send_message("このコマンドは管理権限を持っている方のみ実行できます。\nYou do not have administrator privileges.....", ephemeral=True)
             return
 
         view = VcListenCreateView()
@@ -66,3 +74,4 @@ class VoiceCog(commands.Cog):
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(VoiceCog(bot))
+    bot.add_view(VcListenCreateView())
