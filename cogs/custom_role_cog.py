@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands,Interaction
 import asyncio
+from sqlalchemy.exc import IntegrityError
 from db.crud import (
     add_custom_role_to_user, create_custom_role, create_custom_role_channel, delete_custom_role, delete_custom_role_channel, get_channels_by_custom_role, get_custom_roles,
     get_roles_by_user, get_users_by_role, remove_custom_role_from_user
@@ -13,6 +14,21 @@ from services.channel_permission import (
 from views.role_select import PaginatedRoleSelectView
 
 REQUIRED_ROLE_ID = 1340608856132288583
+
+
+def make_role_select_embed_factory(title: str, description: str):
+    """Selectの現在ページに表示されている候補だけをEmbedへ載せる。"""
+    def factory(role_names, page: int, page_count: int):
+        page_text = "\n".join(f"- {role_name}" for role_name in role_names)
+        if page_count > 1:
+            page_text = f"{page_text}\n\nページ: {page + 1}/{page_count}"
+        return discord.Embed(
+            title=title,
+            description=f"{description}\n\n{page_text}",
+            color=discord.Colour.blue(),
+        ).set_footer(text="表示されているロールから選択してください")
+
+    return factory
 
 # ロール作成
 class CreateCustomRoleModal(discord.ui.Modal):
@@ -27,8 +43,33 @@ class CreateCustomRoleModal(discord.ui.Modal):
         self.add_item(self.role_name)
 
     async def on_submit(self, interaction: discord.Interaction):
-        role_name = self.role_name.value
-        create_custom_role(self.guild_id, role_name)
+        role_name = self.role_name.value.strip()
+        if not role_name:
+            await interaction.response.send_message(
+                "カスタムロール名を入力してください。",
+                ephemeral=True,
+            )
+            return
+
+        # 先に確認して、DBの一意制約違反をユーザー向けの案内に変える。
+        existing_roles = get_custom_roles(self.guild_id)
+        if any(role.role_name.casefold() == role_name.casefold() for role in existing_roles):
+            await interaction.response.send_message(
+                f"「{role_name}」という名前のカスタムロールは既に存在します。別の名前を入力してください。",
+                ephemeral=True,
+            )
+            return
+
+        try:
+            create_custom_role(self.guild_id, role_name)
+        except IntegrityError:
+            # 同時操作などで事前確認後に重複した場合も同じ案内を返す。
+            await interaction.response.send_message(
+                f"「{role_name}」という名前のカスタムロールは既に存在します。別の名前を入力してください。",
+                ephemeral=True,
+            )
+            return
+
         await interaction.response.send_message(f"Creating custom_role:@{role_name}, create user by {interaction.user.mention}\n messages will be deleted in 5 seconds.")
         await asyncio.sleep(5)
         await interaction.delete_original_response()
@@ -37,10 +78,15 @@ class AddUserToCustomRoleView(PaginatedRoleSelectView):
     def __init__(self, guild_id: int):
         self.guild_id = guild_id
         roles = get_custom_roles(guild_id)
+        self.embed_factory = make_role_select_embed_factory(
+            "カスタムロールを追加",
+            "以下のロールから、ユーザーに付与するロールを選択できます。",
+        )
         super().__init__(
             [role.role_name for role in roles],
             self.role_select,
             placeholder="Select a role",
+            embed_factory=self.embed_factory,
         )
 
     async def role_select(self, interaction: discord.Interaction, role_name: str):
@@ -73,11 +119,16 @@ class RemoveUserFromCustomRoleView(PaginatedRoleSelectView):
         self.guild_id = guild_id
         self.user_id = user_id
         roles = get_roles_by_user(guild_id, user_id)
+        self.embed_factory = make_role_select_embed_factory(
+            "カスタムロールを削除",
+            "以下のロールから、あなたが所持しているロールを選択できます。",
+        )
         super().__init__(
             [role.role_name for role in roles],
             self.role_select,
             placeholder="Select a role",
             author_id=user_id,
+            embed_factory=self.embed_factory,
         )
 
     async def role_select(self, interaction: discord.Interaction, role_name: str):
@@ -110,11 +161,16 @@ class DeleteCustomRoleView(PaginatedRoleSelectView):
     def __init__(self, guild_id: int, author_id: int):
         self.guild_id = guild_id
         roles = get_custom_roles(guild_id)
+        self.embed_factory = make_role_select_embed_factory(
+            "カスタムロールを削除",
+            "以下のロールから、サーバーから削除するロールを選択できます。",
+        )
         super().__init__(
             [role.role_name for role in roles],
             self.role_select,
             placeholder="Select a role",
             author_id=author_id,
+            embed_factory=self.embed_factory,
         )
 
     async def role_select(self, interaction: discord.Interaction, role_name: str):
@@ -132,11 +188,16 @@ class ListView(PaginatedRoleSelectView):
         self.cog = cog
         self.guild_id = guild_id
         roles = get_custom_roles(guild_id)
+        self.embed_factory = make_role_select_embed_factory(
+            "Custom Roles List",
+            "以下のロールから、所持ユーザーを表示するロールを選択できます。",
+        )
         super().__init__(
             [role.role_name for role in roles],
             self.role_select,
             placeholder="Select a role to view users",
             author_id=author_id,
+            embed_factory=self.embed_factory,
         )
 
     async def role_select(self, interaction: discord.Interaction, role_name: str):
@@ -326,13 +387,18 @@ class CreateChannelThisCustomRole(PaginatedRoleSelectView):
     def __init__(self, cog, guild_id: int, author_id: int):
         self.cog = cog
         self.guild_id = guild_id
-        roles = get_custom_roles(guild_id)
+        roles = get_roles_by_user(guild_id, author_id)
+        self.embed_factory = make_role_select_embed_factory(
+            "チャンネル作成に使用するロール",
+            "以下のロールから、チャンネルを閲覧できるロールを選択できます。",
+        )
         super().__init__(
             [role.role_name for role in roles],
             self.select_role,
             placeholder="ロールを選択",
             author_id=author_id,
             timeout=120,
+            embed_factory=self.embed_factory,
         )
 
     async def select_role(self, interaction: discord.Interaction, role_name: str):
@@ -368,12 +434,17 @@ class MentionRoleSelectView(PaginatedRoleSelectView):
         self.cog = cog
         self.guild_id = guild_id
         self.mention_message = message
+        self.embed_factory = make_role_select_embed_factory(
+            "メンションするロールを選択",
+            "検索結果のうち、メンションするロールを選択できます。",
+        )
         super().__init__(
             [role.role_name for role in roles],
             self.select_role,
             placeholder="メンションするロールを選択",
             author_id=author_id,
             timeout=120,
+            embed_factory=self.embed_factory,
         )
 
     async def select_role(self, interaction: discord.Interaction, role_name: str):
@@ -429,7 +500,11 @@ class CustomRoleControlView(discord.ui.View):
             await interaction.response.send_message("追加できるカスタムロールはありません。", ephemeral=True)
             return
         view = AddUserToCustomRoleView(guild_id)
-        await interaction.response.send_message("Select a role to add:", view=view, ephemeral=True)
+        await interaction.response.send_message(
+            embed=view.current_page_embed(),
+            view=view,
+            ephemeral=True,
+        )
 
     @discord.ui.button(
         label="Remove Custom Role",
@@ -445,7 +520,11 @@ class CustomRoleControlView(discord.ui.View):
             await interaction.response.send_message("削除できるカスタムロールはありません。", ephemeral=True)
             return
         view = RemoveUserFromCustomRoleView(guild_id, interaction.user.id)
-        await interaction.response.send_message("Select a role to remove:", view=view, ephemeral=True)
+        await interaction.response.send_message(
+            embed=view.current_page_embed(),
+            view=view,
+            ephemeral=True,
+        )
 
     @discord.ui.button(
         label="Delete Custom Role",
@@ -461,7 +540,11 @@ class CustomRoleControlView(discord.ui.View):
             await interaction.response.send_message("削除できるカスタムロールはありません。", ephemeral=True)
             return
         view = DeleteCustomRoleView(guild_id, interaction.user.id)
-        await interaction.response.send_message("Select a role to delete:", view=view, ephemeral=True)
+        await interaction.response.send_message(
+            embed=view.current_page_embed(),
+            view=view,
+            ephemeral=True,
+        )
 
 class CustomRoleActionView(discord.ui.View):
     def __init__(self, cog, guild_id: int | None = None):
@@ -480,15 +563,19 @@ class CustomRoleActionView(discord.ui.View):
         if guild_id is None:
             await interaction.response.send_message("サーバー内で実行してください。", ephemeral=True)
             return
-        if not get_custom_roles(guild_id):
+        if not get_roles_by_user(guild_id, interaction.user.id):
             await interaction.response.send_message(
-                "作成済みのカスタムロールがありません。",
+                "あなたが所持しているカスタムロールがありません。",
                 ephemeral=True,
             )
             return
 
         view = CreateChannelThisCustomRole(self.cog, guild_id, interaction.user.id)
-        await interaction.response.send_message("チャンネルを閲覧できるロールを選択してください:", view=view, ephemeral=True)
+        await interaction.response.send_message(
+            embed=view.current_page_embed(),
+            view=view,
+            ephemeral=True,
+        )
 
 class CustomRoleCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -551,12 +638,7 @@ class CustomRoleCog(commands.Cog):
             return
 
         view = ListView(self, ctx.guild.id, ctx.author.id)
-        embed = discord.Embed(
-            title="Custom Roles List",
-            description="\n".join(f"- {role.role_name}" for role in custom_roles),
-            color=discord.Colour.blue(),
-        ).set_footer(text="select a role from the dropdown")
-        view.message = await ctx.send(embed=embed, view=view)
+        view.message = await ctx.send(embed=view.current_page_embed(), view=view)
 
     @commands.command(name="mention")
     async def mention(self, ctx, role_query: str, *, message: str = None):
@@ -593,10 +675,7 @@ class CustomRoleCog(commands.Cog):
             message=message,
         )
 
-        menu_message = await ctx.send(
-            f"「{role_query}」に一致するロールを選んでください。",
-            view=view,
-        )
+        menu_message = await ctx.send(embed=view.current_page_embed(), view=view)
         view.message = menu_message
         await self.delete_command_message(ctx)
 

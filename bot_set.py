@@ -1,8 +1,11 @@
+import asyncio
 import discord
 import logging
 from discord.ext import commands
 from discord import app_commands
 import os
+
+bot_loop = None
 
 TOKEN = os.getenv('TOKEN')
 
@@ -45,6 +48,8 @@ class StaryCat(commands.Bot):
         synced = await self.tree.sync(guild=guild)
         print(f"同期されたコマンド: {[cmd.name for cmd in synced]}")
         await self.change_presence(activity=self.activity)
+        global bot_loop
+        bot_loop = asyncio.get_running_loop()
         print(f'{self.user}が起動しました')
 
 

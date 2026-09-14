@@ -43,6 +43,24 @@ def get_custom_roles(guild_id: int) -> list[CustomRole]:
         session.close()
 
 
+def rename_custom_role(guild_id: int, role_id: int, role_name: str) -> CustomRole:
+    """指定サーバーのカスタムロール名を変更する。"""
+    session = SessionLocal()
+    try:
+        role = session.query(CustomRole).filter(
+            CustomRole.guild_id == guild_id,
+            CustomRole.id == role_id,
+        ).first()
+        if role is None:
+            raise ValueError(f"Role '{role_id}' not found")
+        role.role_name = role_name
+        session.commit()
+        session.refresh(role)
+        return role
+    finally:
+        session.close()
+
+
 def create_custom_role_channel(
     guild_id: int,
     role_name: str,
@@ -110,6 +128,18 @@ def delete_custom_role_channel(channel_id: int) -> bool:
         session.delete(channel)
         session.commit()
         return True
+    finally:
+        session.close()
+
+
+def get_custom_role_channel(guild_id: int, channel_id: int) -> Channel | None:
+    """指定サーバーに登録されたカスタムロール用チャンネルを取得する。"""
+    session = SessionLocal()
+    try:
+        return session.query(Channel).filter(
+            Channel.guild_id == guild_id,
+            Channel.channel_id == channel_id,
+        ).first()
     finally:
         session.close()
 
