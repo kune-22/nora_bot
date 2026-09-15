@@ -1,0 +1,20 @@
+.app-header { align-items: center; background: #38574F; display: flex; justify-content: space-between; min-height: 70px; padding: 20px max(32px, calc((100% - 1176px) / 2)); }
+.app-header .brand { align-items: center; color: #fff; display: flex; font-size: 16px; font-weight: 700; gap: 10px; letter-spacing: .02em; }
+.app-header .brand-mark { align-items: center; background: #b8e8f5; border-radius: 50%; color: #173c5b; display: inline-flex; font-size: 13px; font-weight: 900; height: 30px; justify-content: center; width: 30px; }
+.app-header .brand-button { background: transparent; border: 0; padding: 0; }
+.header-actions { align-items: center; display: flex; gap: 28px; }
+.app-header .app-nav { display: flex; gap: 24px; }
+.app-header .app-nav button, .app-header .logout-link { background: transparent; border: 0; color: #d8edf2; font-size: 13px; padding: 0; }
+.app-header .app-nav button:hover, .app-header .logout-link:hover { color: #fff; }
+.header-account { align-items: center; color: #fff; display: flex; font-size: 12px; gap: 10px; justify-self: end; }
+.header-account img, .header-account .avatar-fallback { border-radius: 50%; height: 30px; object-fit: cover; width: 30px; }
+.header-account .logout-link { margin-left: 7px; }
+.app-header .nav-login { background: #fff; border: 1px solid #fff; border-radius: 999px; color: #23445c; font-size: 13px; padding: 10px 20px; }
+.app-header .nav-login:hover { background: #b8e8f5; border-color: #b8e8f5; }
+
+@media (max-width: 720px) {
+  .app-header { min-height: 64px; padding: 16px 20px; }
+  .header-actions { gap: 16px; }
+  .app-header .app-nav { gap: 16px; }
+  .header-account > span:first-child, .header-account .logout-link { display: none; }
+}

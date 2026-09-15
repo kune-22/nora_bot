@@ -4,6 +4,7 @@ import discord
 
 
 RoleSelectedCallback = Callable[[discord.Interaction, str], Awaitable[None]]
+RolePageEmbedFactory = Callable[[Sequence[str], int, int], discord.Embed]
 
 
 class PaginatedRoleSelectView(discord.ui.View):
@@ -20,6 +21,7 @@ class PaginatedRoleSelectView(discord.ui.View):
         author_id: int | None = None,
         timeout: float | None = 180,
         delete_on_timeout: bool = False,
+        embed_factory: RolePageEmbedFactory | None = None,
     ):
         if not role_names:
             raise ValueError("role_names must not be empty")
@@ -30,6 +32,7 @@ class PaginatedRoleSelectView(discord.ui.View):
         self.placeholder = placeholder
         self.author_id = author_id
         self.delete_on_timeout = delete_on_timeout
+        self.embed_factory = embed_factory
         self.page = 0
         self.message: discord.Message | None = None
         self._build_components()
@@ -74,6 +77,14 @@ class PaginatedRoleSelectView(discord.ui.View):
             next_button.callback = self._next_page
             self.add_item(next_button)
 
+    def current_page_embed(self) -> discord.Embed | None:
+        """現在のSelectページに対応するEmbedを返す。"""
+        if self.embed_factory is None:
+            return None
+        start = self.page * self.PAGE_SIZE
+        page_roles = self.role_names[start : start + self.PAGE_SIZE]
+        return self.embed_factory(page_roles, self.page, self.page_count)
+
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if self.author_id is not None and interaction.user.id != self.author_id:
             await interaction.response.send_message(
@@ -95,12 +106,20 @@ class PaginatedRoleSelectView(discord.ui.View):
     async def _previous_page(self, interaction: discord.Interaction) -> None:
         self.page -= 1
         self._build_components()
-        await interaction.response.edit_message(view=self)
+        embed = self.current_page_embed()
+        if embed is None:
+            await interaction.response.edit_message(view=self)
+        else:
+            await interaction.response.edit_message(view=self, embed=embed)
 
     async def _next_page(self, interaction: discord.Interaction) -> None:
         self.page += 1
         self._build_components()
-        await interaction.response.edit_message(view=self)
+        embed = self.current_page_embed()
+        if embed is None:
+            await interaction.response.edit_message(view=self)
+        else:
+            await interaction.response.edit_message(view=self, embed=embed)
 
     async def on_timeout(self) -> None:
         if self.message is not None:
