@@ -85,3 +85,17 @@
 .channel-message { border-radius: 5px; font-size: 12px; margin: 16px 0 0; padding: 10px 12px; }
 .channel-message.success { background: #214634; color: #9ae6ba; }
 .channel-message.error { background: #5c2b2e; color: #ffbfc3; }
+.server-sidebar nav:nth-of-type(2) button:nth-child(3) { display: none; }
+.bot-settings-panel { background: #2b2d31; border: 1px solid #3f4147; border-radius: 8px; margin-top: 28px; padding: 26px; }
+.bot-settings-intro { align-items: start; display: flex; justify-content: space-between; gap: 20px; }
+.bot-settings-intro h2 { color: #f2f3f5; font-size: 24px; margin: 4px 0 8px; }
+.bot-settings-intro p:not(.discord-eyebrow) { color: #b5bac1; font-size: 13px; margin: 0; }
+.settings-badge { background: #263b32; border-radius: 99px; color: #57d69a; font-size: 10px; padding: 8px 10px; white-space: nowrap; }
+.settings-group { border-top: 1px solid #3f4147; margin-top: 24px; padding-top: 20px; }
+.settings-group h3 { color: #f2f3f5; font-size: 15px; margin: 0 0 10px; }
+.setting-row { align-items: center; border-bottom: 1px solid #3f4147; display: flex; gap: 18px; justify-content: space-between; padding: 14px 0; }
+.setting-row strong, .setting-row small { display: block; }.setting-row strong { color: #dcdee1; font-size: 13px; }.setting-row small { color: #949ba4; font-size: 11px; margin-top: 4px; }
+.setting-row input { accent-color: #5865f2; flex: 0 0 auto; height: 18px; width: 18px; }
+.settings-field { align-items: center; color: #b5bac1; display: flex; font-size: 12px; gap: 16px; justify-content: space-between; }.settings-field input { background: #1e1f22; border: 1px solid #5865f2; border-radius: 6px; color: #f2f3f5; padding: 9px 11px; width: 180px; }.settings-help { color: #949ba4; display: block; font-size: 11px; margin-top: 8px; }
+.settings-actions { align-items: center; display: flex; gap: 12px; margin-top: 24px; }.settings-actions button { background: #5865f2; border: 1px solid #7289da; border-radius: 6px; color: #fff; cursor: pointer; font-size: 12px; font-weight: 700; padding: 10px 16px; }.settings-actions span { color: #57d69a; font-size: 12px; }
+@media (max-width: 640px) { .bot-settings-intro { flex-direction: column; }.setting-row { align-items: start; }.settings-field { align-items: start; flex-direction: column; }.settings-field input { width: 100%; } }
