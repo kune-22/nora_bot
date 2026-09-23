@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-REQUIRED_ROLE_ID = 1340608856132288583
 class VcNameModal(discord.ui.Modal):
     def __init__(self):
         super().__init__(title="作成するボイスチャンネル名を入力")
@@ -56,7 +55,7 @@ class VoiceCog(commands.Cog):
 
     @app_commands.command(name="create_voice_channel", description="ボイスチャンネル・聞き専を作成します")
     async def create_voice_channel(self, interaction: discord.Interaction):
-        if not interaction.user.guild_permissions.administrator or not any(role.id == REQUIRED_ROLE_ID for role in interaction.user.roles):
+        if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("このコマンドは管理権限を持っている方のみ実行できます。\nYou do not have administrator privileges.....", ephemeral=True)
             return
 

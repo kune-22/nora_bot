@@ -13,7 +13,6 @@ from services.channel_permission import (
 )
 from views.role_select import PaginatedRoleSelectView
 
-REQUIRED_ROLE_ID = 1340608856132288583
 
 
 def make_role_select_embed_factory(title: str, description: str):
@@ -588,8 +587,8 @@ class CustomRoleCog(commands.Cog):
             await interaction.response.send_message("サーバー内で実行してください。", ephemeral=True)
             return
 
-        if not any(role.id == REQUIRED_ROLE_ID for role in interaction.user.roles):
-            await interaction.response.send_message("このコマンドは対象ロールを持っている方のみ実行できます。\nYou do not have the required role.....", ephemeral=True)
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message("このパネルは管理者のみ配置できます。", ephemeral=True)
             return
 
         view = CustomRoleControlView(self, interaction.guild_id)
@@ -610,8 +609,8 @@ class CustomRoleCog(commands.Cog):
             await interaction.response.send_message("サーバー内で実行してください。", ephemeral=True)
             return
 
-        if not any(role.id == REQUIRED_ROLE_ID for role in interaction.user.roles):
-            await interaction.response.send_message("このコマンドは対象ロールを持っている方のみ実行できます。\nYou do not have the required role.....", ephemeral=True)
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message("このパネルは管理者のみ配置できます。", ephemeral=True)
             return
 
         view = CustomRoleActionView(self, interaction.guild_id)
@@ -626,10 +625,6 @@ class CustomRoleCog(commands.Cog):
 
     @commands.command(name="list_custom_roles")
     async def list_custom_roles(self, ctx):
-        if not any(role.id == REQUIRED_ROLE_ID for role in ctx.author.roles):
-            await ctx.send("このコマンドは対象ロールを持っている方のみ実行できます。\nYou do not have the required role.....")
-            return
-
         custom_roles = get_custom_roles(ctx.guild.id)
         if not custom_roles:
             msg = await ctx.send("カスタムロールは存在しません。")
@@ -642,10 +637,6 @@ class CustomRoleCog(commands.Cog):
 
     @commands.command(name="mention")
     async def mention(self, ctx, role_query: str, *, message: str = None):
-        if not any(role.id == REQUIRED_ROLE_ID for role in ctx.author.roles):
-            await ctx.send("このコマンドは対象ロールを持っている方のみ実行できます。\nYou do not have the required role.....")
-            return
-
         roles = get_custom_roles(ctx.guild.id)
 
         matched_role = discord.utils.find(

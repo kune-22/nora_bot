@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-REQUIRED_ROLE_ID = 1340608856132288583
 class FormCreateView(discord.ui.View):
     def __init__(self, cog):
         super().__init__(timeout=None)
@@ -62,7 +61,7 @@ class FormCog(commands.Cog):
 
     @app_commands.command(name="form", description="お問い合わせフォームを作成します")
     async def form_command(self, interaction: discord.Interaction):
-        if not interaction.user.guild_permissions.administrator or not any(role.id == REQUIRED_ROLE_ID for role in interaction.user.roles):
+        if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("このコマンドは管理権限を持っている方のみ実行できます。\nYou do not have administrator privileges.....", ephemeral=True)
             return
 
