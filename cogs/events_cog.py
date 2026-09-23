@@ -11,7 +11,7 @@ class EventsCog(commands.Cog):
         if message.author == self.bot.user or not message.guild:
             return
 
-        if message.content.startswith("test"):
+        if message.content.startswith("stray bot running test"):
             await message.channel.send("正常に動作しています")
 
 

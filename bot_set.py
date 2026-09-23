@@ -43,9 +43,7 @@ class StaryCat(commands.Bot):
         
     async def on_ready(self):
     # スラッシュコマンドの同期
-        guild = discord.Object(id=1139501724499988540)
-        bot.tree.copy_global_to(guild=guild)
-        synced = await self.tree.sync(guild=guild)
+        synced = await self.tree.sync()
         print(f"同期されたコマンド: {[cmd.name for cmd in synced]}")
         await self.change_presence(activity=self.activity)
         global bot_loop
